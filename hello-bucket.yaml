@@ -5,10 +5,10 @@ Description: >
 Parameters:
   VPC:
     Type: AWS::EC2::VPC::Id
-  SubnetA:
-    Type: AWS::EC2::Subnet::Id
-  SubnetB:
-    Type: AWS::EC2::Subnet::Id
+  #SubnetA:
+  #  Type: AWS::EC2::Subnet::Id
+  #SubnetB:
+  #  Type: AWS::EC2::Subnet::Id
   ServiceName:
     Type: String
     Default: wordpress-prod-iad
@@ -24,17 +24,15 @@ Parameters:
 
 Resources:
 
-  HelloBucket:
-    Type: AWS::S3::Bucket
-
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Join ['', [!Ref ServiceName, EcsCluster]]
+      ClusterName: !Join ['', [!Ref ServiceName, "EcsCluster"]]
 
   ContainerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName: !Join ['', [!Ref ServiceName, "Container"]]
       GroupDescription: !Join ['', [!Ref ServiceName, ContainerSecurityGroup]]
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -45,6 +43,7 @@ Resources:
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName: !Join ['', [!Ref ServiceName, "LoadBalancer"]]
       GroupDescription: !Join ['', [!Ref ServiceName, LoadBalancerSecurityGroup]]
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -53,4 +52,7 @@ Resources:
           ToPort: !Ref LoadBalancerPort
           CidrIp: 0.0.0.0/0
 
-  
+Outputs:
+  EcsClusterName:
+    Description: Ecs Cluster
+    Value: !Ref EcsCluster
