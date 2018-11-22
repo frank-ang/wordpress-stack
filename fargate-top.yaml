@@ -84,7 +84,6 @@ Resources:
     Properties:
       TemplateURL:
         Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}fargate-ecs.yaml"
-        #Fn::Sub: "https://s3.amazonaws.com/sandbox01-demo-iad/templates/fargate-ecs.yaml"
       Parameters:
         VPC:
           Ref: VPC

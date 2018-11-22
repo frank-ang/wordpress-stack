@@ -24,6 +24,13 @@ Parameters:
     Type: 'List<AWS::EC2::Subnet::Id>'
   ClientSecurityGroupIds:
     Type: 'List<AWS::EC2::SecurityGroup::Id>'
+  DatabaseInstanceClass:
+    Type: String
+    Default: db.t2.small
+    AllowedValues: 
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
 
 Resources:
   StackAlarmTopic:
@@ -51,7 +58,7 @@ Resources:
     Properties:
       Engine: aurora
       DBClusterIdentifier: !Ref "DatabaseCluster"
-      DBInstanceClass: db.t2.small
+      DBInstanceClass: !Ref DatabaseInstanceClass
       DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
 
   DatabasePrimaryCPUAlarm:
@@ -117,7 +124,7 @@ Resources:
     Properties:
       Engine: aurora
       DBClusterIdentifier: !Ref "DatabaseCluster"
-      DBInstanceClass: t2.small
+      DBInstanceClass: !Ref DatabaseInstanceClass
       DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
 
   DatabaseReplicaCPUAlarm:

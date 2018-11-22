@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
+
 Description: An example CloudFormation template for Fargate.
+
 Parameters:
   VPC:
     Type: AWS::EC2::VPC::Id
@@ -7,7 +9,6 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   SubnetB:
     Type: AWS::EC2::Subnet::Id
-
   Image:
     Type: String
     Default: 331780945983.dkr.ecr.us-east-1.amazonaws.com/my-wordpress:b2c866a
@@ -220,7 +221,6 @@ Resources:
       Subnets:
         - !Ref SubnetA
         - !Ref SubnetB
-
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
