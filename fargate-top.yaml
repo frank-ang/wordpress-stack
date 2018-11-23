@@ -1,4 +1,4 @@
-Description: Master stack which creates all required nested stacks
+Description: Master stack for Fargate RDS setup
 
 Parameters:
   TemplatePath:
@@ -31,7 +31,7 @@ Parameters:
     Default: 2
   MaxContainers:
     Type: Number
-    Default: 10
+    Default: 4
   AutoScalingTargetValue:
     Type: Number
     Default: 50
@@ -90,7 +90,7 @@ Resources:
           Ref: SubnetA
         SubnetB:
           Ref: SubnetB
-        ClientSecurityGroupId: # "sg-0a5bfb2723b54d97e"
+        ClientSecurityGroupId:
           Fn::GetAtt: [ SecurityStack, Outputs.ContainerSecurityGroup ]
         DatabaseInstanceClass: db.t2.small
 
@@ -128,7 +128,7 @@ Resources:
         AutoScalingTargetValue:
           Ref: AutoScalingTargetValue
         DatabaseHost:
-          GetAtt: DatabaseStack, Outputs.DatabaseClusterEndpoint
+          Fn::GetAtt: [ DatabaseStack, Outputs.DatabaseClusterEndpoint ]
         DatabasePassword:
           Ref: DatabasePassword
         DatabaseUser:

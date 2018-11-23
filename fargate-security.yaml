@@ -45,8 +45,6 @@ Resources:
           Value: "${ServiceName}-LoadBalancer"
 Outputs:
   ContainerSecurityGroup:
-    #Value: !Ref ContainerSecurityGroup
     Value: !GetAtt ContainerSecurityGroup.GroupId
   LoadBalancerSecurityGroup:
-    #Value: !Ref LoadBalancerSecurityGroup
     Value: !GetAtt LoadBalancerSecurityGroup.GroupId
