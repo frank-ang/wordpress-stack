@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: An example CloudFormation template for Fargate.
+Description: Creates Compute resources for Fargate and ECS.
 
 Parameters:
   VPC:
@@ -14,8 +14,10 @@ Parameters:
     Default: 331780945983.dkr.ecr.us-east-1.amazonaws.com/my-wordpress:b2c866a
   ServiceName:
     Type: String
-    # update with the name of the service
-    Default: my-wordpress-iad-prod
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
   ContainerPort:
     Type: Number
     Default: 80
@@ -136,26 +138,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole'
-  ContainerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Join ['', [!Ref ServiceName, ContainerSecurityGroup]]
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref ContainerPort
-          ToPort: !Ref ContainerPort
-          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
-  LoadBalancerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Join ['', [!Ref ServiceName, LoadBalancerSecurityGroup]]
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref LoadBalancerPort
-          ToPort: !Ref LoadBalancerPort
-          CidrIp: 0.0.0.0/0
+
   Service:
     Type: AWS::ECS::Service
     DependsOn:
@@ -182,6 +165,7 @@ Resources:
         - ContainerName: !Ref ServiceName
           ContainerPort: !Ref ContainerPort
           TargetGroupArn: !Ref TargetGroup
+
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -217,7 +201,7 @@ Resources:
       # "internal" is also an option
       Scheme: internet-facing
       SecurityGroups:
-        - !Ref LoadBalancerSecurityGroup
+        - !Ref ContainerSecurityGroup
       Subnets:
         - !Ref SubnetA
         - !Ref SubnetB

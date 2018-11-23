@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: >
+  Common security groups.
+
+Parameters:
+  ServiceName:
+    Type: String
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  LoadBalancerPort:
+    Type: String
+    Default: 80
+  ContainerPort:
+    Type: String
+    Default: 80
+
+Resources:
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [!Ref ServiceName, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort
+          ToPort: !Ref ContainerPort
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: "${ServiceName}-Container"
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [!Ref ServiceName, LoadBalancerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref LoadBalancerPort
+          ToPort: !Ref LoadBalancerPort
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: "${ServiceName}-LoadBalancer"
+Outputs:
+  ContainerSecurityGroup:
+    Value: !Ref ContainerSecurityGroup
+  LoadBalancerSecurityGroup:
+    Value: !Ref LoadBalancerSecurityGroup
