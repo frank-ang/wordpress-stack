@@ -234,5 +234,5 @@ Resources:
 Outputs:
   LoadBalancerUrl:
     Description: Load Balancer URL
-    Value: !Ref LoadBalancer
+    Value: !GetAtt LoadBalancer.DNSName
 

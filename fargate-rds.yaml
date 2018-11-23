@@ -5,25 +5,16 @@ Description: >
 
 Parameters:
   DatabaseUser:
-    # TODO move validation up to parent??
-    AllowedPattern: "[a-zA-Z0-9]+"
-    ConstraintDescription: must be between 1 to 16 alphanumeric characters.
-    Description: The database admin account user name, between 1 to 16 alphanumeric characters.
-    MaxLength: '16'
-    MinLength: '1'
     Type: String
   DatabasePassword:
-    AllowedPattern: "[a-zA-Z0-9]+"
-    ConstraintDescription: must be between 8 to 41 alphanumeric characters.
-    Description: The database admin account password, between 8 to 41 alphanumeric characters.
-    MaxLength: '41'
-    MinLength: '8'`
-    NoEcho: 'true'
     Type: String
-  SubnetIds:
-    Type: 'List<AWS::EC2::Subnet::Id>'
-  ClientSecurityGroupIds:
-    Type: 'List<AWS::EC2::SecurityGroup::Id>'
+  SubnetA:
+    Type: AWS::EC2::Subnet::Id
+  SubnetB:
+    Type: AWS::EC2::Subnet::Id
+  ClientSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    # Type: String
   DatabaseInstanceClass:
     Type: String
     Default: db.t2.small
@@ -42,7 +33,9 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: CloudFormation managed DB subnet group.
-      SubnetIds: !Ref SubnetIds
+      SubnetIds: 
+        - !Ref SubnetA
+        - !Ref SubnetB
 
   DatabaseCluster:
     Type: AWS::RDS::DBCluster
@@ -51,7 +44,8 @@ Resources:
       MasterUsername: !Ref "DatabaseUser"
       MasterUserPassword: !Ref "DatabasePassword"
       DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
-      VpcSecurityGroupIds: !Ref ClientSecurityGroupIds
+      VpcSecurityGroupIds: 
+        - !Ref ClientSecurityGroupId
 
   DatabasePrimaryInstance:
     Type: AWS::RDS::DBInstance
@@ -184,3 +178,8 @@ Resources:
           Value: !Ref "DatabaseReplicaInstance"
       AlarmActions:
         - Ref: StackAlarmTopic
+
+Outputs:
+  DatabaseClusterEndpoint:
+    Description: host and port for the RDS cluster endpoint
+    Value: !GetAtt DatabaseCluster.Endpoint.Address
