@@ -1,4 +1,4 @@
-Description: Master stack for Fargate RDS setup
+Description: Master stack for Wordpress Fargate RDS setup
 
 Parameters:
   TemplatePath:
