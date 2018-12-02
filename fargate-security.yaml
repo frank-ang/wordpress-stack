@@ -16,24 +16,11 @@ Parameters:
     Default: 80
 
 Resources:
-  ContainerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Join ['', [!Ref ServiceName, ContainerSecurityGroup]]
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref ContainerPort
-          ToPort: !Ref ContainerPort
-          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
-      Tags:
-        - Key: Name
-          Value: "${ServiceName}-Container"
 
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Join ['', [!Ref ServiceName, LoadBalancerSecurityGroup]]
+      GroupDescription: !Join ['', [!Ref ServiceName, "-LoadBalancerSecurityGroup"]]
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -42,7 +29,32 @@ Resources:
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: "${ServiceName}-LoadBalancer"
+          Value: !Join ['', [!Ref ServiceName, "-LoadBalancerSecurityGroup"]]
+
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [!Ref ServiceName, "-Container"]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort
+          ToPort: !Ref ContainerPort
+          SourceSecurityGroupId: !GetAtt LoadBalancerSecurityGroup.GroupId
+      Tags:
+        - Key: Name
+          Value: !Join ['', [!Ref ServiceName, "-Container"]]
+
+  ContainerSecurityGroupInternalIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties: 
+      GroupId: !Ref ContainerSecurityGroup
+      Description: MySQL within group
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref ContainerSecurityGroup
+
 Outputs:
   ContainerSecurityGroup:
     Value: !GetAtt ContainerSecurityGroup.GroupId

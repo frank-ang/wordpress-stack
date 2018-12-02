@@ -4,6 +4,8 @@ Description: >
   RDS Aurora cluster for wordpress on fargate.
 
 Parameters:
+  ServiceName:
+    Type: String
   DatabaseUser:
     Type: String
   DatabasePassword:
@@ -31,7 +33,8 @@ Resources:
   DatabaseSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: CloudFormation managed DB subnet group.
+      # DBSubnetGroupName: !Join ['', [!Ref ServiceName, "-DBSubnetGroup"]]
+      DBSubnetGroupDescription: !Join ['', [!Ref ServiceName, " DB subnet group"]]
       SubnetIds: 
         - !Ref SubnetA
         - !Ref SubnetB
@@ -39,10 +42,12 @@ Resources:
   DatabaseCluster:
     Type: AWS::RDS::DBCluster
     Properties:
+      DatabaseName: !Join ['', [!Ref ServiceName, "DBCluster"]]
       Engine: aurora
       MasterUsername: !Ref "DatabaseUser"
       MasterUserPassword: !Ref "DatabasePassword"
-      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      DeletionProtection: false
       VpcSecurityGroupIds: 
         - !Ref ClientSecurityGroupId
 
@@ -53,6 +58,10 @@ Resources:
       DBClusterIdentifier: !Ref "DatabaseCluster"
       DBInstanceClass: !Ref DatabaseInstanceClass
       DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+      PubliclyAccessible: true
+      Tags: 
+        - Key: Name
+          Value: !Join ['', [!Ref ServiceName, "DBPrimary"]]
 
   DatabasePrimaryCPUAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -94,91 +103,91 @@ Resources:
       InsufficientDataActions:
         - Ref: StackAlarmTopic
 
-  DatabasePrimaryReplicationAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: Database replication latency is over 200ms.
-      Namespace: AWS/RDS
-      MetricName: AuroraReplicaLag
-      Unit: Milliseconds
-      Statistic: Average
-      Period: 300
-      EvaluationPeriods: 2
-      Threshold: 200
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Dimensions:
-        - Name: DBInstanceIdentifier
-          Value: !Ref "DatabaseReplicaInstance"
-      AlarmActions:
-        - Ref: StackAlarmTopic
+#  DatabasePrimaryReplicationAlarm:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      AlarmDescription: Database replication latency is over 200ms.
+#      Namespace: AWS/RDS
+#      MetricName: AuroraReplicaLag
+#      Unit: Milliseconds
+#      Statistic: Average
+#      Period: 300
+#      EvaluationPeriods: 2
+#      Threshold: 200
+#      ComparisonOperator: GreaterThanOrEqualToThreshold
+#      Dimensions:
+#        - Name: DBInstanceIdentifier
+#          Value: !Ref "DatabaseReplicaInstance"
+#      AlarmActions:
+#        - Ref: StackAlarmTopic
 
-  DatabaseReplicaInstance:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      Engine: aurora
-      DBClusterIdentifier: !Ref "DatabaseCluster"
-      DBInstanceClass: !Ref DatabaseInstanceClass
-      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+#  DatabaseReplicaInstance:
+#    Type: AWS::RDS::DBInstance
+#    Properties:
+#      Engine: aurora
+#      DBClusterIdentifier: !Ref "DatabaseCluster"
+#      DBInstanceClass: !Ref DatabaseInstanceClass
+#      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
 
-  DatabaseReplicaCPUAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: Replica database CPU utilization is over 80%.
-      Namespace: AWS/RDS
-      MetricName: CPUUtilization
-      Unit: Percent
-      Statistic: Average
-      Period: 300
-      EvaluationPeriods: 2
-      Threshold: 80
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Dimensions:
-        - Name: DBInstanceIdentifier
-          Value: !Ref "DatabaseReplicaInstance"
-      AlarmActions:
-        - Ref: StackAlarmTopic
-      InsufficientDataActions:
-        - Ref: StackAlarmTopic
+#  DatabaseReplicaCPUAlarm:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      AlarmDescription: Replica database CPU utilization is over 80%.
+#      Namespace: AWS/RDS
+#      MetricName: CPUUtilization
+#      Unit: Percent
+#      Statistic: Average
+#      Period: 300
+#      EvaluationPeriods: 2
+#      Threshold: 80
+#     ComparisonOperator: GreaterThanOrEqualToThreshold
+#     Dimensions:
+#        - Name: DBInstanceIdentifier
+#          Value: !Ref "DatabaseReplicaInstance"
+#      AlarmActions:
+#        - Ref: StackAlarmTopic
+#      InsufficientDataActions:
+#        - Ref: StackAlarmTopic
 
-  DatabaseReplicaMemoryAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: Replica database freeable memory is under 700MB.
-      Namespace: AWS/RDS
-      MetricName: FreeableMemory
-      Unit: Bytes
-      Statistic: Average
-      Period: 300
-      EvaluationPeriods: 2
-      Threshold: 700000000
-      ComparisonOperator: LessThanOrEqualToThreshold
-      Dimensions:
-        - Name: DBInstanceIdentifier
-          Value: !Ref "DatabaseReplicaInstance"
-      AlarmActions:
-        - Ref: StackAlarmTopic
-      InsufficientDataActions:
-        - Ref: StackAlarmTopic
+#  DatabaseReplicaMemoryAlarm:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      AlarmDescription: Replica database freeable memory is under 700MB.
+#     Namespace: AWS/RDS
+#     MetricName: FreeableMemory
+#     Unit: Bytes
+#      Statistic: Average
+#     Period: 300
+#     EvaluationPeriods: 2
+#      Threshold: 700000000
+#     ComparisonOperator: LessThanOrEqualToThreshold
+#     Dimensions:
+#        - Name: DBInstanceIdentifier
+#          Value: !Ref "DatabaseReplicaInstance"
+#      AlarmActions:
+#        - Ref: StackAlarmTopic
+#      InsufficientDataActions:
+#        - Ref: StackAlarmTopic
 
-  DatabaseReplicaReplicationAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: Database replication latency is over 200ms.
-      Namespace: AWS/RDS
-      MetricName: AuroraReplicaLag
-      Unit: Milliseconds
-      Statistic: Average
-      Period: 300
-      EvaluationPeriods: 2
-      Threshold: 200
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Dimensions:
-        - Name: DBInstanceIdentifier
-          Value: !Ref "DatabaseReplicaInstance"
-      AlarmActions:
-        - Ref: StackAlarmTopic
+#  DatabaseReplicaReplicationAlarm:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#     AlarmDescription: Database replication latency is over 200ms.
+#     Namespace: AWS/RDS
+#      MetricName: AuroraReplicaLag
+#      Unit: Milliseconds
+#      Statistic: Average
+#      Period: 300
+#      EvaluationPeriods: 2
+#      Threshold: 200
+#      ComparisonOperator: GreaterThanOrEqualToThreshold
+#      Dimensions:
+#        - Name: DBInstanceIdentifier
+#          Value: !Ref "DatabaseReplicaInstance"
+#      AlarmActions:
+#        - Ref: StackAlarmTopic
 
 Outputs:
   DatabaseClusterEndpoint:
-    Description: host and port for the RDS cluster endpoint
+    Description: Host and port for the RDS cluster endpoint
     Value: !GetAtt DatabaseCluster.Endpoint.Address

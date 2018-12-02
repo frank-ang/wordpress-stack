@@ -82,6 +82,8 @@ Resources:
       TemplateURL:
         Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}fargate-rds.yaml"
       Parameters:
+        ServiceName: "prodwordpress"
+          # Ref: ServiceName
         DatabaseUser:
           Ref: DatabaseUser
         DatabasePassword:
@@ -109,8 +111,8 @@ Resources:
           Ref: SubnetB
         Image:
           Ref: Image
-        ServiceName:
-          Ref: ServiceName
+        ServiceName: "my-wordpress"
+          # Ref: ServiceName
         ContainerSecurityGroup:
           Fn::GetAtt: [ SecurityStack, Outputs.ContainerSecurityGroup ]
         LoadBalancerSecurityGroup:
